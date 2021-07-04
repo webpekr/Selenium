@@ -1,18 +1,26 @@
 package ex;
 
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.imageio.ImageIO;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 
 public class Main {
 
-	public static final String WEB_DRIVER_ID = "webdriver.chrome.driver"; // µå¶óÀÌ¹ö ID
-	public static final String WEB_DRIVER_PATH = "D:\\DEV\\JAVA\\SOURCE\\Selenium\\EXSelenium\\so\\chromedriver.exe"; // µå¶óÀÌ¹ö
-																														// °æ·Î
+	public static final String WEB_DRIVER_ID = "webdriver.chrome.driver"; // ë“œë¼ì´ë²„ ID
+	public static final String WEB_DRIVER_PATH = "D:\\DEV\\JAVA\\SOURCE\\Selenium\\EXSelenium\\so\\chromedriver.exe"; // ë“œë¼ì´ë²„
+																														// ê²½ë¡œ
 
 	public static void main(String[] args) {
 
@@ -20,32 +28,76 @@ public class Main {
 
 		Path path = Paths.get(System.getProperty("user.dir"), "so/chromedriver.exe");
 
-		// webDriver °æ·Î ¼ºÁ¤
-		 System.setProperty("webdriver.chrome.driver",path.toString());
+		// webDriver ê²½ë¡œ ì„±ì •
+		System.setProperty("webdriver.chrome.driver", path.toString());
 
-		// webDriver °æ·Î ¼ºÁ¤
+		// webDriver ê²½ë¡œ ì„±ì •
 //		try {
 //			System.setProperty(WEB_DRIVER_ID, WEB_DRIVER_PATH);
 //		} catch (Exception e) {
 //			e.printStackTrace();
 //		}
 
-		System.out.println(path.toString());
+//		System.out.println(path.toString());
 
+		// WebDriver ì˜µì…˜ ì„¤ì •
 		ChromeOptions options = new ChromeOptions();
-		options.addArguments("--start-maximized");// ÀüÃ¼È­¸é
-		options.addArguments("--disable-popup-blocking");// ÆË¾÷¹«½Ã
-		options.addArguments("--disable-default-apps");// ±âº»¾Û »ç¿ë¾ÈÇÔ
+		options.addArguments("--start-maximized"); // ì „ì²´í™”ë©´ìœ¼ë¡œ ì‹¤í–‰
+		options.addArguments("--disable-popup-blocking"); // íŒì—… ë¬´ì‹œ
+		options.addArguments("--disable-default-apps"); // ê¸°ë³¸ì•± ì‚¬ìš©ì•ˆí•¨
+		// options.setHeadless(true);
+		// WebDriver ê°ì²´ ìƒì„±
+		ChromeDriver driver = new ChromeDriver(options);
+		// ë¹ˆ íƒ­ ìƒì„±
+		// driver.executeScript("window.open('about:blank','_blank');");
+		List<String> tabs = new ArrayList<String>(driver.getWindowHandles());
 
-		// webdriver °´Ã¼ »ı¼º
-	    ChromeDriver driver=new ChromeDriver(options);
-	    //driver.executeScript("window.open('https://naver.com/', '_blank');");
-	    driver.executeScript("window.open('about:blank', '_blank');");
-	    List<String> tabs = new ArrayList<>(driver.getWindowHandles());
-	    
-	    driver.switchTo().window(tabs.get(0));
-	    driver.get("https://naver.com");
-	    
+		// ì²«ë²ˆì§¸ íƒ­ìœ¼ë¡œ ì „í™˜
+		driver.switchTo().window(tabs.get(0));
+		driver.get("https://www.naver.com");
+		driver.get("https://unsplash.com/t/nature");
+
+		File downloadsFolder = new File("downloads");
+
+		if (downloadsFolder.exists() == false) {
+			downloadsFolder.mkdir();
+		}
+
+		List<String> tabs1 = new ArrayList<>(driver.getWindowHandles());
+
+		driver.switchTo().window(tabs1.get(0));
+		driver.get("https://unsplash.com/t/nature");
+		List<WebElement> imgElements = driver.findElements(By.cssSelector(
+				"[data-test=\"photo-grid-multi-col-figure\"] img[data-test=\"photo-grid-multi-col-img\"]"));
+
+		System.out.println(imgElements.size());
+		for (WebElement imgElement : imgElements) {
+			String src = imgElement.getAttribute("src");
+			System.out.println(src);
+
+			BufferedImage saveImage = null;
+
+			try {
+				saveImage = ImageIO.read(new URL(src));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+			if (saveImage != null) {
+				try {
+
+					String fileName = src.split("/")[3];
+					fileName = fileName.split("\\?")[0];
+					ImageIO.write(saveImage, "jpg", new File("downloads/" + fileName + ".jpg"));
+					System.out.println(saveImage);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+
+			System.out.println(src);
+		}
+
 	}
 
 }
